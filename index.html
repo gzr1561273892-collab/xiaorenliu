@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="道家小壬六 · 随机数法 · 辅助决策">
+<meta name="theme-color" content="#1a1612">
+<title>道家小壬六 · 辅助决策</title>
+<style>
+/* ===== CSS Design Tokens ===== */
+:root {
+  --bg-deep: #1a1612;
+  --bg-body: #1f1b16;
+  --bg-card: #2a2520e6;
+  --bg-card-alt: #25201ae6;
+  --bg-input: #1f1b15;
+  --bg-input-focus: #28231c;
+  --text-primary: #F5F0E8;
+  --text-secondary: #bfb8a8;
+  --text-muted: #8a8275;
+  --text-accent: #C9A96E;
+  --color-gold: #C9A96E;
+  --color-gold-dim: #8a7448;
+  --color-red: #8B2500;
+  --color-red-bright: #B22222;
+  --color-jade: #5B8C5A;
+  --color-success: #6B9B6E;
+  --color-error: #C44B4B;
+  --color-warning: #D4A84B;
+  --border-light: #3d3830;
+  --border-accent: #C9A96E40;
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.5);
+  --shadow-gold: 0 0 20px rgba(201,169,110,0.12);
+  --shadow-red: 0 0 16px rgba(139,37,0,0.2);
+  --space-xs: 0.25rem; --space-sm: 0.5rem; --space-md: 1rem;
+  --space-lg: 1.5rem; --space-xl: 2rem; --space-2xl: 3rem;
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px;
+  --font-display: "Noto Serif SC", "STSong", "SimSun", "KaiTi", "Microsoft YaHei", serif;
+  --font-body: "Noto Serif SC", "STSong", "SimSun", "Microsoft YaHei", serif;
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.3s ease;
+  --transition-slow: 0.6s ease;
+}
+
+/* ===== Reset & Base ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg-body);
+  color:var(--text-primary);
+  line-height:1.75;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(201,169,110,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 60%, rgba(139,37,0,0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 90%, rgba(201,169,110,0.03) 0%, transparent 50%);
+}
+h1,h2,h3{font-family:var(--font-display);font-weight:700}
+a{color:var(--color-gold);text-decoration:none}
+button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
+input,textarea{font-family:var(--font-body);outline:none}
+.hidden{display:none}
+noscript{display:block;text-align:center;padding:2rem;color:var(--color-error);font-size:1.1rem}
+
+/* ===== Layout ===== */
+#app-container{
+  width:100%;max-width:640px;
+  padding:var(--space-md);
+  display:flex;flex-direction:column;gap:var(--space-lg);
+  padding-bottom:var(--space-2xl);
+}
+
+/* ===== Header ===== */
+#app-header{
+  text-align:center;
+  padding:var(--space-xl) 0 var(--space-md);
+}
+#app-header h1{
+  font-size:clamp(1.75rem, 5vw, 2.5rem);
+  color:var(--color-gold);
+  letter-spacing:0.15em;
+  text-shadow:0 0 30px rgba(201,169,110,0.2);
+  margin-bottom:var(--space-sm);
+}
+#app-header .subtitle{
+  color:var(--text-secondary);
+  font-size:0.95rem;
+  letter-spacing:0.2em;
+}
+.header-ornament{
+  width:60px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--color-gold-dim),transparent);
+  margin:var(--space-md) auto 0;
+}
+
+/* ===== Cards ===== */
+.card{
+  background:var(--bg-card);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius-lg);
+  padding:var(--space-lg);
+  box-shadow:var(--shadow-card);
+  backdrop-filter:blur(8px);
+  transition:opacity var(--transition-base),transform var(--transition-base);
+}
+.card:hover{border-color:#4a4438}
+
+/* ===== Form Elements ===== */
+.form-group{margin-bottom:var(--space-lg)}
+.form-group label{
+  display:block;
+  font-size:0.875rem;
+  font-weight:600;
+  color:var(--color-gold);
+  letter-spacing:0.08em;
+  margin-bottom:var(--space-sm);
+}
+.form-group textarea{
+  width:100%;
+  background:var(--bg-input);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius-md);
+  color:var(--text-primary);
+  padding:var(--space-md);
+  font-size:1rem;
+  line-height:1.6;
+  resize:vertical;
+  min-height:90px;
+  transition:border-color var(--transition-fast),background var(--transition-fast);
+}
+.form-group textarea:focus{
+  border-color:var(--color-gold-dim);
+  background:var(--bg-input-focus);
+}
+.form-group textarea::placeholder{color:var(--text-muted)}
+.char-count{
+  display:block;text-align:right;
+  font-size:0.75rem;color:var(--text-muted);
+  margin-top:4px;
+}
+
+/* Timestamp */
+.timestamp-display{
+  display:flex;align-items:center;gap:var(--space-sm);
+  padding:var(--space-sm) var(--space-md);
+  background:var(--bg-card-alt);
+  border-radius:var(--radius-sm);
+  border:1px solid var(--border-light);
+  margin-bottom:var(--space-lg);
+  flex-wrap:wrap;
+}
+.timestamp-display .label{
+  font-size:0.8rem;color:var(--text-muted);
+  white-space:nowrap;
+}
+.timestamp-display .value{
+  font-size:0.85rem;color:var(--text-secondary);
+  font-family:var(--font-display);
+}
+.timestamp-display .lunar{
+  font-size:0.8rem;color:var(--color-gold-dim);
+}
+
+/* Numbers Row */
+.numbers-row{
+  display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;
+}
+.numbers-row input[type="number"]{
+  width:80px;flex:1;min-width:60px;
+  background:var(--bg-input);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius-sm);
+  color:var(--text-primary);
+  padding:var(--space-sm) var(--space-md);
+  font-size:1.1rem;
+  text-align:center;
+  font-family:var(--font-display);
+  transition:border-color var(--transition-fast),background var(--transition-fast);
+  -moz-appearance:textfield;
+}
+.numbers-row input[type="number"]::-webkit-inner-spin-button,
+.numbers-row input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.numbers-row input[type="number"]:focus{
+  border-color:var(--color-gold-dim);
+  background:var(--bg-input-focus);
+}
+.numbers-row .separator{
+  color:var(--color-gold-dim);font-size:1.2rem;font-weight:bold;
+}
+.numbers-row input:invalid{border-color:var(--color-error)}
+
+/* Buttons */
+.btn-primary,.btn-secondary{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:var(--space-sm) var(--space-lg);
+  border-radius:var(--radius-sm);
+  font-size:0.95rem;font-weight:600;
+  letter-spacing:0.05em;
+  transition:all var(--transition-fast);
+  min-height:44px;
+}
+.btn-primary{
+  width:100%;
+  background:linear-gradient(135deg, #8B2500 0%, #6B1D00 100%);
+  color:var(--text-primary);
+  border:1px solid #9B3520;
+  font-size:1.05rem;
+  letter-spacing:0.15em;
+  box-shadow:var(--shadow-red);
+  margin-top:var(--space-sm);
+}
+.btn-primary:hover{background:linear-gradient(135deg, #9B3520 0%, #7B2D00 100%);box-shadow:0 0 24px rgba(139,37,0,0.3)}
+.btn-primary:active{transform:scale(0.98)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.btn-secondary{
+  background:transparent;
+  border:1px solid var(--border-light);
+  color:var(--text-secondary);
+}
+.btn-secondary:hover{border-color:var(--color-gold-dim);color:var(--color-gold)}
+.btn-sm{padding:var(--space-xs) var(--space-md);font-size:0.8rem;min-height:36px}
+
+/* Settings Panel */
+#settings-panel{margin-top:var(--space-md)}
+#settings-panel summary{
+  font-size:0.8rem;color:var(--text-muted);
+  cursor:pointer;user-select:none;
+  padding:var(--space-xs) 0;
+  transition:color var(--transition-fast);
+}
+#settings-panel summary:hover{color:var(--text-secondary)}
+.settings-body{
+  margin-top:var(--space-sm);
+  display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--space-sm);
+}
+.settings-body label{font-size:0.75rem;color:var(--text-muted);display:block;width:100%}
+.settings-body input[type="password"]{
+  flex:1;min-width:200px;
+  background:var(--bg-input);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius-sm);
+  color:var(--text-primary);
+  padding:var(--space-xs) var(--space-sm);
+  font-size:0.85rem;
+}
+.settings-body input[type="password"]:focus{border-color:var(--color-gold-dim)}
+.settings-body .hint{font-size:0.7rem;color:var(--text-muted);width:100%}
+.success-dot{
+  display:inline-block;width:8px;height:8px;
+  background:var(--color-success);border-radius:50%;
+  margin-left:var(--space-sm);
+}
+
+/* ===== Loading ===== */
+#loading-card{text-align:center;padding:var(--space-2xl) var(--space-lg)}
+.spinner{
+  width:48px;height:48px;margin:0 auto var(--space-lg);
+  border:2px solid var(--border-light);
+  border-top-color:var(--color-gold);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading-card p{color:var(--text-secondary);font-size:1.05rem}
+.loading-sub{font-size:0.85rem!important;color:var(--text-muted)!important;margin-top:var(--space-xs)}
+.loading-dots::after{
+  content:'';animation:dots 1.5s steps(3) infinite;
+}
+@keyframes dots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
+
+/* ===== Error ===== */
+#error-banner{
+  display:flex;align-items:center;gap:var(--space-sm);
+  padding:var(--space-md) var(--space-lg);
+  background:#3B1515;
+  border:1px solid #6B3030;
+  border-radius:var(--radius-md);
+  color:#f5c6c6;
+  font-size:0.9rem;
+  animation:fadeInUp 0.3s ease;
+}
+#error-banner .error-icon{font-size:1.2rem;flex-shrink:0}
+#error-banner .btn-close{
+  margin-left:auto;background:none;border:none;
+  color:#f5c6c6;font-size:1.2rem;padding:0 var(--space-xs);
+  opacity:0.7;transition:opacity var(--transition-fast);
+}
+#error-banner .btn-close:hover{opacity:1}
+
+/* ===== Result Card ===== */
+.result-section{margin-bottom:var(--space-xl)}
+.result-section:last-child{margin-bottom:0}
+.result-section h2{
+  font-size:1.15rem;
+  color:var(--color-gold);
+  margin-bottom:var(--space-md);
+  padding-bottom:var(--space-sm);
+  border-bottom:1px solid var(--border-light);
+}
+
+/* Calculation Steps */
+.calculation-steps{
+  display:flex;flex-direction:column;gap:var(--space-md);
+}
+.calc-step{
+  display:flex;align-items:center;gap:var(--space-md);
+  padding:var(--space-sm) 0;
+}
+.calc-step-num{
+  width:32px;height:32px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg-card-alt);
+  border:1px solid var(--border-light);
+  border-radius:50%;
+  font-size:0.8rem;color:var(--text-muted);
+  flex-shrink:0;
+}
+.calc-step-body{font-size:0.9rem;color:var(--text-secondary);line-height:1.4}
+.calc-step-body strong{color:var(--color-gold)}
+.calc-arrow{
+  color:var(--color-gold-dim);
+  font-size:1.2rem;
+}
+
+/* Seal Badge */
+.seal-badge{
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+  width:120px;height:120px;
+  border:3px double currentColor;
+  border-radius:8px;
+  transform:rotate(-2deg);
+  animation:sealStamp 0.5s ease;
+  margin:var(--space-md) auto;
+  padding:var(--space-sm);
+}
+@keyframes sealStamp{
+  0%{transform:rotate(-2deg) scale(0.3);opacity:0}
+  70%{transform:rotate(-2deg) scale(1.08);opacity:1}
+  100%{transform:rotate(-2deg) scale(1);opacity:1}
+}
+.seal-badge .position-name{
+  font-family:var(--font-display);
+  font-size:1.6rem;font-weight:700;
+  letter-spacing:0.1em;
+}
+.seal-badge .position-omen{
+  font-size:0.8rem;letter-spacing:0.15em;margin-top:2px;
+}
+.seal-badge.omen-great{color:var(--color-jade);border-color:var(--color-jade)}
+.seal-badge.omen-good{color:#8BB88C;border-color:#8BB88C}
+.seal-badge.omen-neutral{color:#6a7b8a;border-color:#6a7b8a}
+.seal-badge.omen-bad{color:#C44B4B;border-color:#C44B4B}
+.seal-badge.omen-very-bad{color:var(--color-red-bright);border-color:var(--color-red-bright)}
+
+/* Position Details */
+.position-details{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:var(--space-sm);
+  margin-top:var(--space-md);
+}
+.detail-item{
+  background:var(--bg-card-alt);
+  border-radius:var(--radius-sm);
+  padding:var(--space-sm) var(--space-md);
+  text-align:center;
+}
+.detail-item .detail-label{
+  font-size:0.7rem;color:var(--text-muted);
+  letter-spacing:0.05em;margin-bottom:2px;
+}
+.detail-item .detail-value{
+  font-size:0.9rem;color:var(--text-primary);
+  font-family:var(--font-display);
+}
+
+/* Poem */
+.poem-block{
+  background:var(--bg-card-alt);
+  border-left:2px solid var(--color-gold-dim);
+  padding:var(--space-md);
+  margin-top:var(--space-md);
+  font-size:0.85rem;color:var(--text-secondary);
+  line-height:1.8;font-style:italic;
+  border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* Interpretation */
+.interpretation-text{
+  font-size:0.95rem;line-height:1.85;
+  color:var(--text-secondary);
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+/* Result Actions */
+.result-actions{
+  display:flex;gap:var(--space-md);
+  margin-top:var(--space-xl);padding-top:var(--space-md);
+  border-top:1px solid var(--border-light);
+}
+.result-actions button{flex:1}
+
+/* ===== Almanac Card ===== */
+#almanac-card .almanac-header{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
+  margin-bottom:var(--space-md);padding-bottom:var(--space-md);
+  border-bottom:1px solid var(--border-light);
+}
+.almanac-date-info{line-height:1.6}
+.almanac-date-info .gregorian{font-size:1rem;color:var(--text-primary)}
+.almanac-date-info .lunar-date{
+  font-size:0.85rem;color:var(--text-secondary);
+  font-family:var(--font-display);
+}
+.almanac-jianchu{
+  text-align:center;
+  padding:var(--space-sm) var(--space-lg);
+  background:var(--bg-card-alt);
+  border-radius:var(--radius-md);
+  border:1px solid var(--border-light);
+}
+.almanac-jianchu .jianchu-label{font-size:0.7rem;color:var(--text-muted);letter-spacing:0.08em}
+.almanac-jianchu .jianchu-name{font-size:1.3rem;color:var(--color-gold);font-family:var(--font-display);font-weight:700}
+.almanac-content{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg)}
+@media(max-width:400px){.almanac-content{grid-template-columns:1fr;gap:var(--space-md)}}
+.almanac-yi,.almanac-ji{}
+.almanac-yi h3{
+  font-size:0.95rem;color:var(--color-jade);
+  margin-bottom:var(--space-sm);
+  display:flex;align-items:center;gap:var(--space-xs);
+}
+.almanac-ji h3{
+  font-size:0.95rem;color:var(--color-error);
+  margin-bottom:var(--space-sm);
+  display:flex;align-items:center;gap:var(--space-xs);
+}
+.almanac-yi .items,.almanac-ji .items{
+  display:flex;flex-wrap:wrap;gap:var(--space-xs);
+}
+.almanac-yi .tag{
+  display:inline-block;padding:2px 10px;
+  background:rgba(107,155,110,0.15);
+  border:1px solid rgba(107,155,110,0.3);
+  border-radius:var(--radius-sm);
+  font-size:0.8rem;color:var(--color-jade);
+}
+.almanac-ji .tag{
+  display:inline-block;padding:2px 10px;
+  background:rgba(196,75,75,0.12);
+  border:1px solid rgba(196,75,75,0.25);
+  border-radius:var(--radius-sm);
+  font-size:0.8rem;color:#e07070;
+}
+
+/* ===== Footer ===== */
+#app-footer{
+  text-align:center;
+  padding:var(--space-lg) 0;
+  color:var(--text-muted);font-size:0.75rem;
+  line-height:1.8;
+}
+
+/* ===== State Management ===== */
+body.state-loading #input-card,
+body.state-loading #result-card,
+body.state-loading #error-banner,
+body.state-loading #almanac-card{display:none}
+body.state-loading #loading-card{display:block}
+
+body.state-success #input-card,
+body.state-success #loading-card{display:none}
+body.state-success #result-card,
+body.state-success #almanac-card{display:block}
+
+body.state-error #loading-card{display:none}
+body.state-error #error-banner{display:flex}
+
+/* Hide result card in idle/error/loading states */
+body.state-idle #result-card,
+body.state-error #result-card{display:none}
+body.state-idle #loading-card,
+body.state-error #loading-card{display:none}
+body.state-idle #error-banner{display:none}
+body.state-success #error-banner{display:none}
+
+/* ===== Method Selector ===== */
+.method-selector{
+  display:flex;gap:4px;
+  margin-bottom:var(--space-lg);
+  background:var(--bg-card-alt);
+  border-radius:var(--radius-md);
+  padding:3px;
+}
+.method-tab{
+  flex:1;
+  padding:var(--space-sm) var(--space-md);
+  border-radius:var(--radius-sm);
+  font-size:0.85rem;
+  color:var(--text-muted);
+  background:transparent;
+  transition:all var(--transition-fast);
+  letter-spacing:0.05em;
+}
+.method-tab.active{
+  background:var(--bg-card);
+  color:var(--color-gold);
+  box-shadow:0 1px 3px rgba(0,0,0,0.3);
+}
+.method-tab:hover:not(.active){color:var(--text-secondary)}
+
+/* ===== Animations ===== */
+@keyframes fadeInUp{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.card:not(.hidden){animation:fadeInUp 0.4s ease}
+
+/* ===== Responsive ===== */
+@media(max-width:480px){
+  #app-container{padding:var(--space-sm);gap:var(--space-md)}
+  .card{padding:var(--space-md)}
+  .numbers-row input[type="number"]{min-width:50px;padding:var(--space-xs) var(--space-sm)}
+  .seal-badge{width:100px;height:100px}
+  .seal-badge .position-name{font-size:1.3rem}
+  .result-actions{flex-direction:column}
+}
+
+/* Focus visible */
+:focus-visible{outline:2px solid var(--color-gold-dim);outline-offset:2px}
+</style>
+</head>
+<body class="state-idle">
+
+<div id="app-container">
+
+  <!-- Header -->
+  <header id="app-header">
+    <h1>道家小壬六</h1>
+    <p class="subtitle">随机数法 · 辅助决策</p>
+    <div class="header-ornament"></div>
+  </header>
+
+  <!-- Input Card -->
+  <section id="input-card" class="card">
+    <!-- Method Selector (hidden when only 1 method) -->
+    <div id="method-selector" class="method-selector hidden"></div>
+
+    <!-- Question -->
+    <div class="form-group">
+      <label for="question">所问何事</label>
+      <textarea id="question" placeholder="请输入你想询问的问题…" maxlength="500" rows="3"></textarea>
+      <span class="char-count" id="char-count">0/500</span>
+    </div>
+
+    <!-- Timestamp -->
+    <div class="timestamp-display">
+      <span class="label">起卦时间</span>
+      <span class="value" id="timestamp-value">--</span>
+      <span class="lunar" id="timestamp-lunar"></span>
+    </div>
+
+    <!-- Numbers Input Area -->
+    <div id="method-inputs">
+      <div class="form-group">
+        <label>随机三位数</label>
+        <div class="numbers-row">
+          <input type="number" id="num1" min="1" max="999" step="1" placeholder="数一" autocomplete="off">
+          <span class="separator">·</span>
+          <input type="number" id="num2" min="1" max="999" step="1" placeholder="数二" autocomplete="off">
+          <span class="separator">·</span>
+          <input type="number" id="num3" min="1" max="999" step="1" placeholder="数三" autocomplete="off">
+          <button type="button" id="btn-random" class="btn-secondary btn-sm">随机生成</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Settings -->
+    <details id="settings-panel">
+      <summary>API 设置</summary>
+      <div class="settings-body">
+        <label for="api-key">DeepSeek API Key</label>
+        <input type="password" id="api-key" placeholder="sk-…" autocomplete="off">
+        <button type="button" id="btn-save-key" class="btn-secondary btn-sm">保存密钥</button>
+        <span id="key-saved-indicator" class="success-dot hidden"></span>
+        <p class="hint">密钥仅保存在你的浏览器本地，仅通过 HTTPS 发送至 DeepSeek</p>
+      </div>
+    </details>
+
+    <!-- Submit -->
+    <button id="btn-submit" class="btn-primary">开 始 推 算</button>
+  </section>
+
+  <!-- Loading -->
+  <section id="loading-card" class="card hidden">
+    <div class="spinner"></div>
+    <p>掐指推算中<span class="loading-dots"></span></p>
+    <p class="loading-sub">正在问询 DeepSeek 为您解读</p>
+  </section>
+
+  <!-- Error Banner -->
+  <div id="error-banner" class="hidden">
+    <span class="error-icon">⚠</span>
+    <span id="error-message"></span>
+    <button id="btn-dismiss-error" class="btn-close">&times;</button>
+  </div>
+
+  <!-- Result Card -->
+  <section id="result-card" class="card hidden">
+    <!-- Calculation Steps -->
+    <div class="result-section">
+      <h2>推算过程</h2>
+      <div class="calculation-steps" id="calc-steps"></div>
+    </div>
+
+    <!-- Final Position -->
+    <div class="result-section" style="text-align:center">
+      <div id="seal-badge" class="seal-badge">
+        <span class="position-name" id="position-name"></span>
+        <span class="position-omen" id="position-omen"></span>
+      </div>
+      <div class="position-details" id="position-details"></div>
+      <div class="poem-block" id="poem-block"></div>
+    </div>
+
+    <!-- AI Interpretation -->
+    <div class="result-section">
+      <h2>卦象解读</h2>
+      <div class="interpretation-text" id="interpretation-text"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="result-actions">
+      <button id="btn-back" class="btn-secondary">返回修改</button>
+      <button id="btn-copy" class="btn-secondary">复制结果</button>
+      <button id="btn-new" class="btn-secondary">重新推算</button>
+    </div>
+  </section>
+
+  <!-- Daily Almanac Card -->
+  <section id="almanac-card" class="card">
+    <div class="almanac-header">
+      <div class="almanac-date-info">
+        <div class="gregorian" id="almanac-gregorian"></div>
+        <div class="lunar-date" id="almanac-lunar"></div>
+      </div>
+      <div class="almanac-jianchu">
+        <div class="jianchu-label">建除十二神</div>
+        <div class="jianchu-name" id="almanac-jianchu-name"></div>
+      </div>
+    </div>
+    <div class="almanac-content">
+      <div class="almanac-yi">
+        <h3>🟢 宜</h3>
+        <div class="items" id="almanac-yi-items"></div>
+      </div>
+      <div class="almanac-ji">
+        <h3>🔴 忌</h3>
+        <div class="items" id="almanac-ji-items"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer id="app-footer">
+    <p>本工具仅供辅助决策参考，不构成任何确定性预测或建议。</p>
+    <p>最终决策权始终在你手中。占卜不疑，疑则不占。</p>
+  </footer>
+
+</div>
+
+<noscript>请启用 JavaScript 以使用此工具。</noscript>
+
+<script>
+/* ========================================================================
+   道家小壬六 · 辅助决策网页
+   模块：Storage / Almanac / Calculator / Engine / AI / UI
+   ======================================================================== */
+
+const App = {};
+
+/* ========================================================================
+   App.Storage — localStorage 读写
+   ======================================================================== */
+App.Storage = (() => {
+  const PREFIX = 'xrl_';
+
+  function get(key) {
+    try { const v = localStorage.getItem(PREFIX + key); return v ? JSON.parse(v) : null; }
+    catch(e) { return null; }
+  }
+  function set(key, value) {
+    try { localStorage.setItem(PREFIX + key, JSON.stringify(value)); return true; }
+    catch(e) { return false; }
+  }
+  function remove(key) {
+    try { localStorage.removeItem(PREFIX + key); }
+    catch(e) {}
+  }
+
+  return {
+    getApiKey: () => get('apiKey') || '',
+    setApiKey: (k) => set('apiKey', k),
+    getLastResult: () => get('lastResult'),
+    setLastResult: (r) => set('lastResult', r),
+    getAlmanacCache: (dateKey) => get('almanac_' + dateKey),
+    setAlmanacCache: (dateKey, data) => set('almanac_' + dateKey, data),
+    getActiveMethod: () => get('activeMethod'),
+    setActiveMethod: (id) => set('activeMethod', id),
+  };
+})();
+
+/* ========================================================================
+   App.Almanac — 农历/干支/建除十二神/每日宜忌
+   ======================================================================== */
+
+App.Almanac = (() => {
+  /* ---------- 干支 ---------- */
+  const STEMS  = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  const BRANCHES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  const ZODIAC = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
+
+  // 2000-01-01 = 戊午日 = cycle position 54 (0-indexed, 甲子=0)
+  const REF_DATE = new Date(2000, 0, 1);
+  const REF_CYCLE = 54;
+
+  function daysBetween(d1, d2) {
+    return Math.round((d2.getTime() - d1.getTime()) / 86400000);
+  }
+
+  /** 获取某天的日干支索引 (0-59) */
+  function getDayCycleIndex(date) {
+    const diff = daysBetween(REF_DATE, date);
+    return ((REF_CYCLE + diff) % 60 + 60) % 60;
+  }
+
+  /** 获取日干支字符串，如 "甲子" */
+  function getDayGanzhi(date) {
+    const ci = getDayCycleIndex(date);
+    return STEMS[ci % 10] + BRANCHES[ci % 12];
+  }
+
+  /** 获取日天干索引 (0-9) */
+  function getDayStem(date) { return getDayCycleIndex(date) % 10; }
+
+  /** 获取日地支索引 (0-11) */
+  function getDayBranch(date) { return getDayCycleIndex(date) % 12; }
+
+  /* ---------- 节气月地支 ---------- */
+  // 基于节气近似日期（公历），返回月地支索引 (0=子,1=丑,2=寅,...)
+  // 节：立春→寅月，惊蛰→卯月，清明→辰月，立夏→巳月，芒种→午月，
+  //      小暑→未月，立秋→申月，白露→酉月，寒露→戌月，立冬→亥月，
+  //      大雪→子月，小寒→丑月
+  function getMonthBranchIndex(date) {
+    const m = date.getMonth(); // 0-11
+    const d = date.getDate();
+    // 节气日近似值：小寒(1/6) 立春(2/4) 惊蛰(3/6) 清明(4/5) 立夏(5/6)
+    //                芒种(6/6) 小暑(7/7) 立秋(8/7) 白露(9/8) 寒露(10/8)
+    //                立冬(11/7) 大雪(12/7)
+    const solarTerms = [6, 4, 6, 5, 6, 6, 7, 7, 8, 8, 7, 7];
+    // 各节气开始的月地支索引 (0=子,1=丑,2=寅,...,11=亥)
+    // 小寒→丑(1), 立春→寅(2), 惊蛰→卯(3), ..., 大雪→子(0)
+    const startBranches = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0];
+
+    if (d >= solarTerms[m]) return startBranches[m];
+    return startBranches[(m - 1 + 12) % 12];
+  }
+
+  /* ---------- 建除十二神 ---------- */
+  const JIANCHU = [
+    { name: '建日', yi: ['出行','赴任','祭祀','开工'], ji: ['动土','开仓','破土'] },
+    { name: '除日', yi: ['除服','疗病','扫舍','拆卸'], ji: ['求官','上任','开市'] },
+    { name: '满日', yi: ['祭祀','祈福','结姻','求嗣'], ji: ['动土','迁徙','开仓'] },
+    { name: '平日', yi: ['修饰垣墙','平治道涂','装修'], ji: ['开渠','穿井','种植'] },
+    { name: '定日', yi: ['订婚','交易','立券','签约'], ji: ['诉讼','医疗','迁徙'] },
+    { name: '执日', yi: ['捕捉','田猎','讨债'], ji: ['开市','交易','入宅'] },
+    { name: '破日', yi: ['求医','破屋坏垣','拆卸'], ji: ['嫁娶','开市','出行','入宅'] },
+    { name: '危日', yi: ['祭祀','祈福','安床'], ji: ['登山','行船','动土'] },
+    { name: '成日', yi: ['入学','嫁娶','开市','上任','修造'], ji: ['诉讼','争执'] },
+    { name: '收日', yi: ['收纳','入库','收敛财物','购置'], ji: ['出行','安葬','远行'] },
+    { name: '开日', yi: ['开业','出行','嫁娶','修造','开市'], ji: ['安葬','行丧'] },
+    { name: '闭日', yi: ['埋葬','修坟','补垣'], ji: ['开市','出行','求医','上任'] }
+  ];
+
+  /** 获取建除十二神索引 (0-11) */
+  function getJianchuIndex(date) {
+    const dayBranch = getDayBranch(date);
+    const monthBranch = getMonthBranchIndex(date);
+    return (dayBranch - monthBranch + 12) % 12;
+  }
+
+  /* ---------- 简易农历日期（基于查表） ---------- */
+  // 农历月名
+  const LUNAR_MONTHS = ['正','二','三','四','五','六','七','八','九','十','冬','腊'];
+  const LUNAR_DAYS = [
+    '','初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
+    '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
+    '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'
+  ];
+
+  // 农历年数据: 每年一个 4-hex 编码
+  // 格式: 0xLFFF — L=闰月(0=无), FFF=12位大小月标志(bit0=正月,1=大月30天)
+  // 闰月的大小与所闰之月相反
+  // 数据覆盖 1900-2050
+  const LUNAR_INFO = [
+    0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
+    0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,
+    0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,
+    0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,
+    0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,
+    0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,
+    0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,
+    0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,
+    0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,
+    0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,
+    0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,
+    0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,
+    0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,
+    0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,
+    0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,
+    0x14b63
+  ]; // 151 entries for 1900-2050
+
+  function getLunarYearInfo(year) {
+    const idx = year - 1900;
+    if (idx < 0 || idx >= LUNAR_INFO.length) return null;
+    return LUNAR_INFO[idx];
+  }
+
+  // Chinese New Year dates (month, day) for 1900-2050
+  // Stored as M * 100 + D
+  const CNY_DATES = [
+    131, 219, 208, 129, 217, 205, 125, 213, 202, 122,
+    210, 130, 218, 206, 126, 214, 203, 123, 211, 201,
+    120, 208, 128, 216, 205, 124, 214, 202, 122, 210,
+    130, 217, 206, 126, 214, 204, 124, 211, 131, 219,
+    208, 127, 215, 205, 125, 213, 202, 122, 210, 129,
+    217, 206, 127, 215, 204, 124, 212, 131, 218, 208,
+    128, 215, 205, 125, 213, 202, 121, 209, 129, 218,
+    206, 127, 216, 204, 123, 211, 131, 218, 207, 128,
+    216, 205, 124, 213, 202, 122, 210, 129, 217, 206,
+    126, 214, 204, 123, 211, 131, 219, 207, 128, 216,
+    205, 124, 212, 201, 121, 209, 130, 217, 206, 126,
+    214, 203, 123, 210, 131, 219, 208, 127, 215, 205,
+    125, 212, 201, 122, 210, 129, 217, 206, 126, 214,
+    203, 123, 211, 201, 120, 208, 128, 216, 205, 124,
+    212, 201, 122, 210, 129, 217, 207, 127, 215, 204,
+    124
+  ]; // matches LUNAR_INFO indices (1900-2050)
+
+  /** 获取农历年信息: { year, leapMonth, monthDays[] } */
+  function getLunarYearData(gregorianYear) {
+    const info = getLunarYearInfo(gregorianYear);
+    if (!info) return null;
+    const leapMonth = (info >> 16) & 0xf; // bits 16-19: leap month number
+    const monthCount = leapMonth ? 13 : 12;
+    const monthDays = [];
+    for (let i = 0; i < 12; i++) {
+      monthDays.push((info >> i) & 1 ? 30 : 29);
+    }
+    if (leapMonth) {
+      // 闰月大小：与所闰之月相反
+      const baseSize = monthDays[leapMonth - 1];
+      monthDays.splice(leapMonth, 0, baseSize === 30 ? 29 : 30);
+    }
+    return { year: gregorianYear, leapMonth, monthDays };
+  }
+
+  /** 公历转农历（近似） */
+  function gregorianToLunar(date) {
+    const y = date.getFullYear();
+    const m = date.getMonth() + 1;
+    const d = date.getDate();
+
+    // 先取前一年的农历数据
+    let lunarYear = y;
+    const idx = y - 1900;
+    if (idx < 0 || idx >= CNY_DATES.length) {
+      // 超出范围，返回简单近似
+      return { year: y, month: m, day: d, isLeap: false, approximate: true };
+    }
+
+    const cnyEnc = CNY_DATES[idx];
+    const cnyMonth = Math.floor(cnyEnc / 100);
+    const cnyDay = cnyEnc % 100;
+    const cnyDate = new Date(y, cnyMonth - 1, cnyDay);
+
+    let daysFromCNY;
+    if (date >= cnyDate) {
+      daysFromCNY = daysBetween(cnyDate, date);
+    } else {
+      // 在春节前，属于上一个农历年
+      lunarYear = y - 1;
+      const prevIdx = lunarYear - 1900;
+      if (prevIdx < 0) return { year: y, month: m, day: d, isLeap: false, approximate: true };
+      const prevCNY = CNY_DATES[prevIdx];
+      const prevCNYDate = new Date(lunarYear, Math.floor(prevCNY / 100) - 1, prevCNY % 100);
+      daysFromCNY = daysBetween(prevCNYDate, date);
+    }
+
+    const yearData = getLunarYearData(lunarYear);
+    if (!yearData) return { year: lunarYear, month: 1, day: 1, isLeap: false, approximate: true };
+
+    // 逐月累加天数确定农历月日
+    let remaining = daysFromCNY;
+    let lunarMonth = 1;
+    let isLeap = false;
+    const leapMonth = yearData.leapMonth;
+
+    for (let i = 0; i < yearData.monthDays.length; i++) {
+      if (remaining < yearData.monthDays[i]) {
+        if (leapMonth && i === leapMonth) {
+          isLeap = true;
+          lunarMonth = leapMonth;
+        } else if (leapMonth && i > leapMonth) {
+          isLeap = false;
+          lunarMonth = i;
+        } else {
+          isLeap = false;
+          lunarMonth = i + 1;
+        }
+        break;
+      }
+      remaining -= yearData.monthDays[i];
+    }
+
+    const lunarDay = remaining + 1;
+    return {
+      year: lunarYear,
+      month: lunarMonth,
+      day: lunarDay,
+      isLeap,
+      approximate: false
+    };
+  }
+
+  /** 格式化农历日期 */
+  function formatLunarDate(lunar) {
+    if (lunar.approximate) return '';
+    const monthStr = (lunar.isLeap ? '闰' : '') + LUNAR_MONTHS[lunar.month - 1];
+    const dayStr = LUNAR_DAYS[lunar.day];
+    const yearGanzhi = getYearGanzhi(lunar.year);
+    const zodiacAnimal = ZODIAC[(lunar.year - 4) % 12];
+    return `${yearGanzhi}年（${zodiacAnimal}） ${monthStr}月${dayStr}`;
+  }
+
+  /** 获取年干支 */
+  function getYearGanzhi(year) {
+    const stemIdx = (year - 4) % 10;
+    const branchIdx = (year - 4) % 12;
+    return STEMS[stemIdx] + BRANCHES[branchIdx];
+  }
+
+  /** 获取当前时辰 (1-12) */
+  function getCurrentShichen(date) {
+    const h = date.getHours();
+    // 子时 23-1, 丑时 1-3, 寅时 3-5, ...
+    const shichenMap = [1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12];
+    return shichenMap[(h + 1) % 24];
+  }
+
+  /** 获取时辰名称 */
+  function getShichenName(idx) {
+    const names = ['','子时','丑时','寅时','卯时','辰时','巳时','午时','未时','申时','酉时','戌时','亥时'];
+    return names[idx] || '';
+  }
+
+  /* ---------- 每日宜忌 ---------- */
+  function getDailyAlmanac(date) {
+    const dateKey = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+
+    // 读缓存
+    const cached = App.Storage.getAlmanacCache(dateKey);
+    if (cached) return cached;
+
+    const dayGanzhi = getDayGanzhi(date);
+    const jianchuIdx = getJianchuIndex(date);
+    const jianchu = JIANCHU[jianchuIdx];
+    const lunar = gregorianToLunar(date);
+    const lunarStr = formatLunarDate(lunar);
+
+    const almanac = {
+      dateKey,
+      gregorian: `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日`,
+      dayGanzhi,
+      lunarStr,
+      jianchuName: jianchu.name,
+      yi: jianchu.yi.filter(x => !x.startsWith(' ')), // filter out notes
+      ji: jianchu.ji.filter(x => !x.startsWith(' ')),
+      isGoodDay: [0,2,4,5,8,10].includes(jianchuIdx), // 建满定执成开 = 相对好日子
+      isBadDay: [3,6,11].includes(jianchuIdx),        // 平破闭 = 较差
+    };
+
+    // 写缓存（当天有效）
+    App.Storage.setAlmanacCache(dateKey, almanac);
+    return almanac;
+  }
+
+  return {
+    getDayGanzhi,
+    getDayBranch,
+    getMonthBranchIndex,
+    getJianchuIndex,
+    getDailyAlmanac,
+    gregorianToLunar,
+    formatLunarDate,
+    getCurrentShichen,
+    getShichenName,
+    getYearGanzhi,
+    ZODIAC,
+    STEMS, BRANCHES, LUNAR_MONTHS, LUNAR_DAYS
+  };
+})();
+
+/* ========================================================================
+   App.Calculator — 六掌诀数据 + 推算逻辑
+   ======================================================================== */
+App.Calculator = (() => {
+  const POSITIONS = [
+    {
+      index: 1, name: '大安', omen: '大吉', omenClass: 'omen-great',
+      meaning: '身不动时，平安顺遂', element: '木', direction: '东方',
+      god: '青龙', numbers: '一、五、七', color: '#5B8C5A',
+      poem: '大安事事昌，求谋在东方，失物去不远，宅舍保安康。\n行人身未动，病者主无妨，将军回田野，仔细好推详。'
+    },
+    {
+      index: 2, name: '留连', omen: '中平', omenClass: 'omen-neutral',
+      meaning: '卒未归时，暗昧延迟', element: '水', direction: '北方',
+      god: '玄武', numbers: '二、八、十', color: '#4a5568',
+      poem: '留连事难成，求谋日未明，官事只宜缓，去者来回程。\n失物南方去，急寻方心明，更需防口舌，人事且平平。'
+    },
+    {
+      index: 3, name: '速喜', omen: '上吉', omenClass: 'omen-good',
+      meaning: '人便至时，喜事临门', element: '火', direction: '南方',
+      god: '朱雀', numbers: '三、六、九', color: '#C44B4B',
+      poem: '速喜喜来临，求财向南行，失物申未午，逢人要打听。\n官事有福德，病者无须恐，田宅六畜吉，行人音信明。'
+    },
+    {
+      index: 4, name: '赤口', omen: '凶', omenClass: 'omen-bad',
+      meaning: '官事凶时，口舌是非', element: '金', direction: '西方',
+      god: '白虎', numbers: '四、七、十', color: '#8B2500',
+      poem: '赤口主口舌，官非切要防，失物急去寻，行人有惊慌。\n鸡犬多作怪，病者出西方，更须防咀咒，恐怕染瘟殃。'
+    },
+    {
+      index: 5, name: '小吉', omen: '大吉', omenClass: 'omen-great',
+      meaning: '人来喜时，和合吉利', element: '木', direction: '西南',
+      god: '六合', numbers: '一、五、七', color: '#6B9B6E',
+      poem: '小吉最吉昌，路上好商量，阴人来报喜，失物在坤方。\n行人立便至，交易甚是强，凡事皆和合，病者祈上苍。'
+    },
+    {
+      index: 6, name: '空亡', omen: '大凶', omenClass: 'omen-very-bad',
+      meaning: '音信稀时，谋事落空', element: '土', direction: '中央',
+      god: '勾陈', numbers: '三、六、九', color: '#8a8275',
+      poem: '空亡事不祥，阴人多乖张，求财无利益，行人有灾殃。\n失物寻不见，官事有刑伤，病人逢暗鬼，析解可安康。'
+    }
+  ];
+
+  function getPosition(index) {
+    return POSITIONS[(index - 1 + 6) % 6];
+  }
+
+  /**
+   * 推算落位
+   * @returns {{ finalIndex, finalPosition, steps }}
+   */
+  function calculatePosition(num1, num2, num3) {
+    // Step 1: 从大安(1)起数 num1
+    const land1 = ((num1 - 1) % 6) + 1;
+    // Step 2: 从 land1 起数 num2
+    const land2 = ((land1 + num2 - 2) % 6) + 1;
+    // Step 3: 从 land2 起数 num3
+    const land3 = ((land2 + num3 - 2) % 6) + 1;
+
+    const steps = [
+      { step: 1, num: num1, start: '大安', startIdx: 1, end: getPosition(land1).name, endIdx: land1 },
+      { step: 2, num: num2, start: getPosition(land1).name, startIdx: land1, end: getPosition(land2).name, endIdx: land2 },
+      { step: 3, num: num3, start: getPosition(land2).name, startIdx: land2, end: getPosition(land3).name, endIdx: land3 },
+    ];
+
+    return {
+      finalIndex: land3,
+      finalPosition: getPosition(land3),
+      steps
+    };
+  }
+
+  /** 生成 3 个随机数 (1-999) */
+  function generateRandomNumbers() {
+    const crypto = window.crypto || window.msCrypto;
+    const rand = () => {
+      if (crypto) {
+        const arr = new Uint32Array(1);
+        crypto.getRandomValues(arr);
+        return (arr[0] % 999) + 1;
+      }
+      return Math.floor(Math.random() * 999) + 1;
+    };
+    return [rand(), rand(), rand()];
+  }
+
+  /** 校验数字输入 */
+  function validateNumbers(num1, num2, num3) {
+    const errors = [];
+    const nums = [num1, num2, num3];
+    const labels = ['数一', '数二', '数三'];
+    for (let i = 0; i < 3; i++) {
+      const v = nums[i];
+      if (v === '' || v === null || v === undefined) {
+        errors.push(`请填写"${labels[i]}"，或点击随机生成`);
+      } else if (!Number.isInteger(Number(v)) || Number(v) < 1 || Number(v) > 999) {
+        errors.push(`"${labels[i]}"必须为 1-999 的正整数`);
+      }
+    }
+    return { valid: errors.length === 0, errors };
+  }
+
+  return { POSITIONS, getPosition, calculatePosition, generateRandomNumbers, validateNumbers };
+})();
+
+/* ========================================================================
+   App.Engine — 运算方法注册中心
+   ======================================================================== */
+App.Engine = (() => {
+  const methods = {};
+  let activeId = null;
+
+  function register(method) {
+    methods[method.id] = method;
+    // 第一个注册的方法自动激活
+    if (!activeId) activeId = method.id;
+  }
+
+  function getActive() {
+    return methods[activeId] || null;
+  }
+
+  function getMethod(id) {
+    return methods[id] || null;
+  }
+
+  function setActive(id) {
+    if (methods[id]) {
+      activeId = id;
+      App.Storage.setActiveMethod(id);
+    }
+  }
+
+  function getAll() {
+    return Object.values(methods);
+  }
+
+  function count() {
+    return Object.keys(methods).length;
+  }
+
+  return { register, getActive, getMethod, setActive, getAll, count };
+})();
+
+/* ========================================================================
+   App.AI — DeepSeek API 适配器
+   ======================================================================== */
+App.AI = (() => {
+  const ENDPOINT = 'https://api.deepseek.com/v1/chat/completions';
+  const MODEL = 'deepseek-chat';
+  const TIMEOUT_MS = 30000;
+
+  const SYSTEM_PROMPT = `你是一位精通道家小六壬（小壬六）占卜的智者。你根据小六壬的推算结果为用户提供解读。你的解读风格应当融合道家哲学智慧，既尊重传统掌诀含义，又结合用户的具体问题进行实际指导。
+
+重要原则：
+1. 这是一个辅助决策工具，你的解读应帮助用户理清思路、看清局势，而非做绝对预测或替用户做决定。
+2. 保持中立客观，不鼓励盲信或迷信。解读的语言应古朴典雅但不过于玄奥，让现代人也能理解。
+3. 解读结构应包含：
+   (a) 掌诀的传统含义简述（一两句即可）；
+   (b) 结合用户问题的具体分析——此卦象对于用户所问之事意味着什么；
+   (c) 基于卦象给出方向性的建议和注意事项（2-3条）。
+4. 在解读结尾，温和地提醒用户：最终的决定权在自己手中，卦象仅作参考。
+5. 如果用户的问题涉及生命健康、重大法律或财务决策，请特别强调寻求专业意见的重要性。
+6. 请用典雅流畅的中文回复，控制在300-500字之间。`;
+
+  function buildPrompt(question, timestamp, numbers, calcResult, methodLabel) {
+    const pos = calcResult.finalPosition;
+    const steps = calcResult.steps;
+
+    let stepsText = '';
+    steps.forEach((s, i) => {
+      const seq = ['一','二','三'][i];
+      stepsText += `第${seq}步：从「${s.start}」起数，顺时针数 ${s.num} 位，落于「${s.end}」\n`;
+    });
+
+    return `起卦时间：${timestamp}
+起卦方式：${methodLabel}
+
+用户问题：
+"${question}"
+
+随机三位数：${numbers[0]}、${numbers[1]}、${numbers[2]}
+
+推算过程：
+${stepsText}
+最终掌诀：「${pos.name}」（第${pos.index}掌）
+
+「${pos.name}」的传统含义如下：
+吉凶：${pos.omen}，含义：${pos.meaning}
+五行：${pos.element}，方位：${pos.direction}，六神：${pos.god}，主数：${pos.numbers}
+传统断辞：
+${pos.poem}
+
+请你根据以上推算结果，结合用户所问的问题，进行卦象解读。请用典雅的中文，按照系统提示中的结构来组织你的回复。`;
+  }
+
+  async function callAPI(apiKey, question, timestamp, numbers, calcResult, methodLabel) {
+    const messages = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: buildPrompt(question, timestamp, numbers, calcResult, methodLabel) }
+    ];
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+    let response;
+    try {
+      response = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          messages,
+          temperature: 0.8,
+          max_tokens: 2048,
+          stream: false
+        }),
+        signal: controller.signal
+      });
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        throw { type: 'timeout', message: '请求超时，请稍后重试' };
+      }
+      throw { type: 'network', message: '网络连接失败，请检查你的网络后重试' };
+    }
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      if (response.status === 401) throw { type: 'auth', message: 'API 密钥无效，请检查后重试' };
+      if (response.status === 429) throw { type: 'rate', message: '请求过于频繁，请稍后重试' };
+      if (response.status >= 500) throw { type: 'server', message: 'DeepSeek 服务暂时不可用，请稍后重试' };
+      throw { type: 'http', message: `请求失败 (HTTP ${response.status})，请重试` };
+    }
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (err) {
+      throw { type: 'parse', message: '返回数据格式异常，请重试' };
+    }
+
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content || !content.trim()) {
+      throw { type: 'empty', message: 'DeepSeek 返回了空内容，请重试' };
+    }
+
+    return content;
+  }
+
+  return { callAPI, SYSTEM_PROMPT };
+})();
+
+/* ========================================================================
+   App.UI — DOM 操作、状态机、事件绑定
+   ======================================================================== */
+App.UI = (() => {
+  // DOM 缓存
+  const els = {};
+  let currentResult = null;
+
+  function cacheElements() {
+    const ids = [
+      'question', 'char-count', 'timestamp-value', 'timestamp-lunar',
+      'num1', 'num2', 'num3', 'btn-random', 'api-key', 'btn-save-key',
+      'key-saved-indicator', 'btn-submit',
+      'error-banner', 'error-message', 'btn-dismiss-error',
+      'result-card', 'calc-steps', 'seal-badge', 'position-name', 'position-omen',
+      'position-details', 'poem-block', 'interpretation-text',
+      'btn-copy', 'btn-new', 'btn-back', 'loading-card',
+      'method-selector', 'method-inputs',
+      'almanac-gregorian', 'almanac-lunar', 'almanac-jianchu-name',
+      'almanac-yi-items', 'almanac-ji-items'
+    ];
+    ids.forEach(id => { els[id] = document.getElementById(id); });
+  }
+
+  function setState(state) {
+    document.body.className = `state-${state}`;
+  }
+
+  function formatTimestamp(date) {
+    const y = date.getFullYear();
+    const mo = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const h = String(date.getHours()).padStart(2, '0');
+    const mi = String(date.getMinutes()).padStart(2, '0');
+    const s = String(date.getSeconds()).padStart(2, '0');
+    const weekdays = ['日','一','二','三','四','五','六'];
+    const w = weekdays[date.getDay()];
+    return `${y}年${mo}月${d}日 ${h}:${mi}:${s} 星期${w}`;
+  }
+
+  function updateTimestamp() {
+    const now = new Date();
+    els['timestamp-value'].textContent = formatTimestamp(now);
+
+    const lunar = App.Almanac.gregorianToLunar(now);
+    const lunarStr = App.Almanac.formatLunarDate(lunar);
+    const shichen = App.Almanac.getCurrentShichen(now);
+    const shichenName = App.Almanac.getShichenName(shichen);
+    els['timestamp-lunar'].textContent = lunarStr ? `${lunarStr} ${shichenName}` : shichenName;
+  }
+
+  function showError(type, message) {
+    els['error-message'].textContent = message;
+    setState('error');
+  }
+
+  function renderCalculationSteps(steps) {
+    els['calc-steps'].innerHTML = steps.map((s, i) => {
+      const seq = ['一','二','三'][i];
+      return `
+        <div class="calc-step">
+          <div class="calc-step-num">${s.step}</div>
+          <div class="calc-step-body">
+            第${seq}步：从 <strong>${s.start}</strong> 起数
+            <span class="calc-arrow">→</span> 数 ${s.num} 位
+            <span class="calc-arrow">→</span> 落于 <strong>${s.end}</strong>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderSealBadge(position) {
+    const seal = els['seal-badge'];
+    seal.className = 'seal-badge ' + position.omenClass;
+    els['position-name'].textContent = position.name;
+    els['position-omen'].textContent = position.omen;
+    els['position-name'].style.color = position.color;
+    els['position-omen'].style.color = position.color;
+
+    els['position-details'].innerHTML = `
+      <div class="detail-item">
+        <div class="detail-label">五行</div>
+        <div class="detail-value">${position.element}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">方位</div>
+        <div class="detail-value">${position.direction}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">六神</div>
+        <div class="detail-value">${position.god}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">主数</div>
+        <div class="detail-value">${position.numbers}</div>
+      </div>
+    `;
+    els['poem-block'].textContent = position.poem;
+  }
+
+  function renderInterpretation(text) {
+    els['interpretation-text'].textContent = text;
+  }
+
+  async function handleSubmit() {
+    // 1. 收集输入
+    const question = els['question'].value.trim();
+    if (!question) { showError('input', '请输入你想询问的问题'); return; }
+
+    const method = App.Engine.getActive();
+    if (!method) { showError('system', '未找到可用的运算方法'); return; }
+
+    const num1Val = els['num1'].value;
+    const num2Val = els['num2'].value;
+    const num3Val = els['num3'].value;
+    const inputs = { num1: num1Val, num2: num2Val, num3: num3Val };
+
+    // 校验
+    const validation = method.validate ? method.validate(inputs) : App.Calculator.validateNumbers(num1Val, num2Val, num3Val);
+    if (!validation.valid) {
+      showError('input', validation.errors[0]);
+      return;
+    }
+
+    const apiKey = els['api-key'].value.trim() || App.Storage.getApiKey();
+    if (!apiKey) {
+      showError('auth', '请先设置 DeepSeek API 密钥（点击上方"API 设置"展开面板）');
+      els['settings-panel'].open = true;
+      return;
+    }
+
+    // 2. 进入加载状态
+    setState('loading');
+
+    const now = new Date();
+    const timestamp = formatTimestamp(now) + '，' + (App.Almanac.formatLunarDate(App.Almanac.gregorianToLunar(now)) || '');
+    const numbers = [Number(num1Val), Number(num2Val), Number(num3Val)];
+
+    // 3. 推算
+    const calcResult = method.calculate
+      ? method.calculate(inputs, now)
+      : App.Calculator.calculatePosition(numbers[0], numbers[1], numbers[2]);
+
+    const methodLabel = method.name;
+
+    // 4. 调用 AI
+    try {
+      const interpretation = await App.AI.callAPI(apiKey, question, timestamp, numbers, calcResult, methodLabel);
+
+      // 5. 渲染结果
+      renderCalculationSteps(calcResult.steps);
+      renderSealBadge(calcResult.finalPosition);
+      renderInterpretation(interpretation);
+
+      currentResult = {
+        question, timestamp, numbers, calcResult, methodLabel, interpretation
+      };
+      App.Storage.setLastResult(currentResult);
+
+      setState('success');
+      els['result-card'].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err) {
+      showError(err.type || 'unknown', err.message || '未知错误，请重试');
+    }
+  }
+
+  function copyResult() {
+    if (!currentResult) return;
+    const r = currentResult;
+    const pos = r.calcResult.finalPosition;
+    const steps = r.calcResult.steps;
+    const seq = ['一','二','三'];
+
+    let stepsText = '';
+    steps.forEach((s, i) => {
+      stepsText += `第${seq[i]}步：${s.start} → 数${s.num} → ${s.end}\n`;
+    });
+
+    const text = `=== 道家小壬六 · 占卜结果 ===
+
+起卦时间：${r.timestamp}
+起卦方式：${r.methodLabel}
+所问问题：${r.question}
+
+随机数：${r.numbers[0]}、${r.numbers[1]}、${r.numbers[2]}
+
+推算过程：
+${stepsText}
+最终掌诀：${pos.name}（${pos.omen}）
+五行：${pos.element}，方位：${pos.direction}，六神：${pos.god}，主数：${pos.numbers}
+
+传统断辞：
+${pos.poem}
+
+解读：
+${r.interpretation}
+
+---
+此结果由 道家小壬六（随机数法）生成
+仅供参考，最终决策权在你手中`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = els['btn-copy'];
+        const orig = btn.textContent;
+        btn.textContent = '已复制';
+        btn.style.color = 'var(--color-jade)';
+        setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 2000);
+      }).catch(() => { fallbackCopy(text); });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); }
+    catch(e) { alert('复制失败，请手动选择文字复制'); }
+    document.body.removeChild(ta);
+  }
+
+  function handleRandom() {
+    const nums = App.Calculator.generateRandomNumbers();
+    els['num1'].value = nums[0];
+    els['num2'].value = nums[1];
+    els['num3'].value = nums[2];
+    // 触发动画效果
+    [els['num1'], els['num2'], els['num3']].forEach(el => {
+      el.style.transition = 'none';
+      el.style.borderColor = 'var(--color-gold)';
+      setTimeout(() => {
+        el.style.transition = 'border-color 0.6s ease';
+        el.style.borderColor = '';
+      }, 50);
+    });
+  }
+
+  function resetForm() {
+    els['question'].value = '';
+    els['char-count'].textContent = '0/500';
+    els['num1'].value = '';
+    els['num2'].value = '';
+    els['num3'].value = '';
+    currentResult = null;
+    setState('idle');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    updateTimestamp();
+  }
+
+  function goBack() {
+    setState('idle');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    updateTimestamp();
+  }
+
+  function renderAlmanac() {
+    const now = new Date();
+    const almanac = App.Almanac.getDailyAlmanac(now);
+
+    els['almanac-gregorian'].textContent = almanac.gregorian;
+    els['almanac-lunar'].textContent = (almanac.lunarStr || '') + ' · ' + almanac.dayGanzhi + '日';
+    els['almanac-jianchu-name'].textContent = almanac.jianchuName;
+
+    els['almanac-yi-items'].innerHTML = almanac.yi.map(x => `<span class="tag">${x}</span>`).join('');
+    els['almanac-ji-items'].innerHTML = almanac.ji.map(x => `<span class="tag">${x}</span>`).join('');
+  }
+
+  function renderMethodSelector() {
+    const methods = App.Engine.getAll();
+    if (methods.length <= 1) {
+      els['method-selector'].classList.add('hidden');
+      return;
+    }
+    els['method-selector'].classList.remove('hidden');
+    const active = App.Engine.getActive();
+    els['method-selector'].innerHTML = methods.map(m => `
+      <button class="method-tab${m.id === active.id ? ' active' : ''}" data-method="${m.id}">
+        ${m.name}
+      </button>
+    `).join('');
+
+    els['method-selector'].querySelectorAll('.method-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        App.Engine.setActive(btn.dataset.method);
+        renderMethodSelector();
+        renderMethodInputs();
+      });
+    });
+  }
+
+  function renderMethodInputs() {
+    const method = App.Engine.getActive();
+    if (!method) return;
+
+    const container = els['method-inputs'];
+    if (!method.inputFields || method.inputFields.length === 0) {
+      container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;padding:var(--space-md) 0">此方法无需手动输入数字，系统将自动获取。</p>';
+      return;
+    }
+
+    let html = '<div class="form-group"><label>随机三位数</label><div class="numbers-row">';
+    method.inputFields.forEach((field, i) => {
+      html += `<input type="${field.type || 'number'}" id="${field.key}" min="${field.min || 1}" max="${field.max || 999}" step="1" placeholder="${field.label}" autocomplete="off">`;
+      if (i < method.inputFields.length - 1) {
+        html += '<span class="separator">·</span>';
+      }
+    });
+    if (method.hasAutoFill) {
+      html += '<button type="button" id="btn-random" class="btn-secondary btn-sm">随机生成</button>';
+    }
+    html += '</div></div>';
+    container.innerHTML = html;
+
+    // 重新缓存动态元素的 DOM 引用
+    els['num1'] = document.getElementById('num1');
+    els['num2'] = document.getElementById('num2');
+    els['num3'] = document.getElementById('num3');
+    els['btn-random'] = document.getElementById('btn-random');
+
+    // 重新绑定随机按钮
+    const btnRandom = container.querySelector('#btn-random');
+    if (btnRandom) {
+      btnRandom.addEventListener('click', handleRandom);
+    }
+
+    // 重新绑定回车提交
+    [els['num1'], els['num2'], els['num3']].forEach(el => {
+      if (el) el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleSubmit();
+      });
+    });
+  }
+
+  function restoreLastResult() {
+    const last = App.Storage.getLastResult();
+    if (last) {
+      currentResult = last;
+      renderCalculationSteps(last.calcResult.steps);
+      renderSealBadge(last.calcResult.finalPosition);
+      renderInterpretation(last.interpretation);
+      els['question'].value = last.question;
+      setState('success');
+    }
+  }
+
+  function init() {
+    cacheElements();
+
+    // 恢复 API Key
+    const savedKey = App.Storage.getApiKey();
+    if (savedKey) {
+      els['api-key'].value = savedKey;
+      els['key-saved-indicator'].classList.remove('hidden');
+    }
+
+    // 更新时间戳
+    updateTimestamp();
+    setInterval(updateTimestamp, 30000); // 每30秒刷新
+
+    // 渲染宜忌
+    renderAlmanac();
+
+    // 注册默认运算方法
+    App.Engine.register({
+      id: 'random-number',
+      name: '随机数法',
+      description: '输入或随机生成三个数字，按小壬六掌诀推算出最终落位',
+      inputFields: [
+        { key: 'num1', label: '数一', type: 'number', min: 1, max: 999 },
+        { key: 'num2', label: '数二', type: 'number', min: 1, max: 999 },
+        { key: 'num3', label: '数三', type: 'number', min: 1, max: 999 },
+      ],
+      hasAutoFill: true,
+      autoFill: () => App.Calculator.generateRandomNumbers(),
+      validate: (inputs) => App.Calculator.validateNumbers(inputs.num1, inputs.num2, inputs.num3),
+      calculate: (inputs) => App.Calculator.calculatePosition(
+        Number(inputs.num1), Number(inputs.num2), Number(inputs.num3)
+      ),
+      buildPromptContext: (inputs, timestamp, calcResult) => {
+        return `起卦方式：随机数法\n随机数：${inputs.num1}、${inputs.num2}、${inputs.num3}`;
+      }
+    });
+
+    // 恢复上次激活的方法
+    const savedMethod = App.Storage.getActiveMethod();
+    if (savedMethod) App.Engine.setActive(savedMethod);
+
+    // 渲染方法选择器和输入区
+    renderMethodSelector();
+    renderMethodInputs();
+
+    // 绑定事件
+    els['btn-submit'].addEventListener('click', handleSubmit);
+    els['btn-dismiss-error'].addEventListener('click', () => setState('idle'));
+    els['btn-copy'].addEventListener('click', copyResult);
+    els['btn-new'].addEventListener('click', resetForm);
+    els['btn-back'].addEventListener('click', goBack);
+    els['btn-random']?.addEventListener('click', handleRandom);
+    els['question'].addEventListener('input', () => {
+      const len = els['question'].value.length;
+      els['char-count'].textContent = `${len}/500`;
+    });
+    els['btn-save-key'].addEventListener('click', () => {
+      const key = els['api-key'].value.trim();
+      if (key) {
+        App.Storage.setApiKey(key);
+        els['key-saved-indicator'].classList.remove('hidden');
+        setTimeout(() => els['key-saved-indicator'].classList.add('hidden'), 3000);
+      }
+    });
+
+    // 回车键在数字输入框提交
+    [els['num1'], els['num2'], els['num3']].forEach(el => {
+      if (el) el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleSubmit();
+      });
+    });
+    els['question'].addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.ctrlKey) handleSubmit();
+    });
+
+    // 恢复上次结果
+    const lastResult = App.Storage.getLastResult();
+    if (lastResult && lastResult.question) {
+      els['question'].value = lastResult.question;
+      els['char-count'].textContent = `${lastResult.question.length}/500`;
+    }
+
+    console.log('道家小壬六 · 辅助决策 已就绪');
+    console.log('今日建除：', App.Almanac.getDailyAlmanac(new Date()).jianchuName);
+  }
+
+  return { init, setState };
+})();
+
+// ===== 启动 =====
+document.addEventListener('DOMContentLoaded', () => App.UI.init());
+</script>
+</body>
+</html>
