@@ -576,18 +576,6 @@ body.state-success #error-banner{display:none}
       </div>
     </div>
 
-    <!-- API Settings -->
-    <details id="settings-panel">
-      <summary>API 设置</summary>
-      <div class="settings-body">
-        <label for="api-key">DeepSeek API Key</label>
-        <input type="password" id="api-key" placeholder="sk-…" autocomplete="off">
-        <button type="button" id="btn-save-key" class="btn-secondary btn-sm">保存密钥</button>
-        <span id="key-saved-indicator" class="success-dot hidden"></span>
-        <p class="hint">密钥仅保存在你的浏览器本地，仅通过 HTTPS 发送至 DeepSeek</p>
-      </div>
-    </details>
-
     <!-- Submit -->
     <button id="btn-submit" class="btn-primary">开 始 推 算</button>
   </section>
@@ -700,8 +688,6 @@ App.Storage = (() => {
   }
 
   return {
-    getApiKey: () => get('apiKey') || '',
-    setApiKey: (k) => set('apiKey', k),
     getLastResult: () => get('lastResult'),
     setLastResult: (r) => set('lastResult', r),
     getAlmanacCache: (dateKey) => get('almanac_' + dateKey),
@@ -1161,7 +1147,7 @@ App.Engine = (() => {
    App.AI — DeepSeek API 适配器
    ======================================================================== */
 App.AI = (() => {
-  const ENDPOINT = 'https://api.deepseek.com/v1/chat/completions';
+  const ENDPOINT = '/api/divine';
   const MODEL = 'deepseek-chat';
   const TIMEOUT_MS = 30000;
 
@@ -1209,7 +1195,7 @@ ${pos.poem}
 请你根据以上推算结果，结合用户所问的问题，进行卦象解读。请用典雅的中文，按照系统提示中的结构来组织你的回复。`;
   }
 
-  async function callAPI(apiKey, question, timestamp, numbers, calcResult, methodLabel) {
+  async function callAPI(question, timestamp, numbers, calcResult, methodLabel) {
     const messages = [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: buildPrompt(question, timestamp, numbers, calcResult, methodLabel) }
@@ -1222,10 +1208,7 @@ ${pos.poem}
     try {
       response = await fetch(ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: MODEL,
           messages,
@@ -1245,9 +1228,8 @@ ${pos.poem}
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      if (response.status === 401) throw { type: 'auth', message: 'API 密钥无效，请检查后重试' };
       if (response.status === 429) throw { type: 'rate', message: '请求过于频繁，请稍后重试' };
-      if (response.status >= 500) throw { type: 'server', message: 'DeepSeek 服务暂时不可用，请稍后重试' };
+      if (response.status >= 500) throw { type: 'server', message: '服务暂时不可用，请稍后重试' };
       throw { type: 'http', message: `请求失败 (HTTP ${response.status})，请重试` };
     }
 
@@ -1280,8 +1262,7 @@ App.UI = (() => {
   function cacheElements() {
     const ids = [
       'question', 'char-count', 'timestamp-value', 'timestamp-lunar',
-      'num1', 'num2', 'num3', 'btn-random', 'api-key', 'btn-save-key',
-      'key-saved-indicator', 'btn-submit',
+      'num1', 'num2', 'num3', 'btn-random', 'btn-submit',
       'error-banner', 'error-message', 'btn-dismiss-error',
       'result-card', 'calc-steps', 'seal-badge', 'position-name', 'position-omen',
       'position-details', 'poem-block', 'interpretation-text',
@@ -1394,13 +1375,6 @@ App.UI = (() => {
       return;
     }
 
-    const apiKey = els['api-key'].value.trim() || App.Storage.getApiKey();
-    if (!apiKey) {
-      showError('auth', '请先设置 DeepSeek API 密钥（点击上方"API 设置"展开面板）');
-      els['settings-panel'].open = true;
-      return;
-    }
-
     // 2. 进入加载状态
     setState('loading');
 
@@ -1417,7 +1391,7 @@ App.UI = (() => {
 
     // 4. 调用 AI
     try {
-      const interpretation = await App.AI.callAPI(apiKey, question, timestamp, numbers, calcResult, methodLabel);
+      const interpretation = await App.AI.callAPI(question, timestamp, numbers, calcResult, methodLabel);
 
       // 5. 渲染结果
       renderCalculationSteps(calcResult.steps);
@@ -1622,13 +1596,6 @@ ${r.interpretation}
   function init() {
     cacheElements();
 
-    // 恢复 API Key
-    const savedKey = App.Storage.getApiKey();
-    if (savedKey) {
-      els['api-key'].value = savedKey;
-      els['key-saved-indicator'].classList.remove('hidden');
-    }
-
     // 更新时间戳
     updateTimestamp();
     setInterval(updateTimestamp, 30000); // 每30秒刷新
@@ -1676,15 +1643,6 @@ ${r.interpretation}
       const len = els['question'].value.length;
       els['char-count'].textContent = `${len}/500`;
     });
-    els['btn-save-key'].addEventListener('click', () => {
-      const key = els['api-key'].value.trim();
-      if (key) {
-        App.Storage.setApiKey(key);
-        els['key-saved-indicator'].classList.remove('hidden');
-        setTimeout(() => els['key-saved-indicator'].classList.add('hidden'), 3000);
-      }
-    });
-
     // 回车键在数字输入框提交
     [els['num1'], els['num2'], els['num3']].forEach(el => {
       if (el) el.addEventListener('keydown', (e) => {

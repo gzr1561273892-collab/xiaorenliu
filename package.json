@@ -1,0 +1,10 @@
+{
+  "name": "xiaorenliu",
+  "version": "1.0.0",
+  "description": "道家小壬六 · 辅助决策",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "private": true
+}
